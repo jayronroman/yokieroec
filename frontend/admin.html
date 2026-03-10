@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Panel Administrador</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<h2 style="text-align:center">Panel Administrador</h2>
+
+<section style="max-width:600px;margin:auto">
+
+<form id="formProducto">
+
+<input type="hidden" id="productoId">
+
+<input type="text" id="nombre" placeholder="Nombre producto" required>
+
+<input type="number" id="precio" placeholder="Precio">
+
+<select id="categoria">
+
+<option value="tecnologia">Tecnología</option>
+<option value="seguridad">Seguridad</option>
+<option value="cocina">Cocina</option>
+<option value="hogar">Hogar</option>
+<option value="herramientas">Herramientas</option>
+
+</select>
+
+<textarea id="descripcion" placeholder="Descripción"></textarea>
+
+<input type="file" id="imagen">
+
+<button type="submit">Guardar producto</button>
+
+</form>
+
+</section>
+
+<hr>
+
+<h2 style="text-align:center">Productos registrados</h2>
+
+<div id="listaAdmin"></div>
+
+<script>
+
+const API="http://localhost:3000/productos"
+
+document.getElementById("formProducto").addEventListener("submit", async e =>{
+
+e.preventDefault()
+
+const id=document.getElementById("productoId").value
+
+if(id){
+
+await fetch(API+"/"+id,{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+nombre:document.getElementById("nombre").value,
+precio:document.getElementById("precio").value,
+categoria:document.getElementById("categoria").value,
+descripcion:document.getElementById("descripcion").value
+
+})
+
+})
+
+alert("Producto actualizado")
+
+}else{
+
+const formData=new FormData()
+
+formData.append("nombre",document.getElementById("nombre").value)
+formData.append("precio",document.getElementById("precio").value)
+formData.append("categoria",document.getElementById("categoria").value)
+formData.append("descripcion",document.getElementById("descripcion").value)
+formData.append("imagen",document.getElementById("imagen").files[0])
+
+await fetch(API,{
+method:"POST",
+body:formData
+})
+
+alert("Producto guardado")
+
+}
+
+document.getElementById("formProducto").reset()
+document.getElementById("productoId").value=""
+
+cargarProductos()
+
+})
+
+async function cargarProductos(){
+
+const res=await fetch(API)
+const productos=await res.json()
+
+const contenedor=document.getElementById("listaAdmin")
+
+contenedor.innerHTML=""
+
+productos.forEach(p=>{
+
+contenedor.innerHTML+=`
+
+<div class="card">
+
+<img src="http://localhost:3000/uploads/${p.imagen}" width="150">
+
+<h3>${p.nombre}</h3>
+
+<p>$${p.precio}</p>
+
+<button onclick="editarProducto('${p._id}','${p.nombre}','${p.precio}','${p.categoria}','${p.descripcion}')">
+
+Editar
+
+</button>
+
+<button onclick="eliminarProducto('${p._id}')">
+
+Eliminar
+
+</button>
+
+</div>
+
+`
+
+})
+
+}
+
+function editarProducto(id,nombre,precio,categoria,descripcion){
+
+document.getElementById("productoId").value=id
+document.getElementById("nombre").value=nombre
+document.getElementById("precio").value=precio
+document.getElementById("categoria").value=categoria
+document.getElementById("descripcion").value=descripcion
+
+window.scrollTo(0,0)
+
+}
+
+async function eliminarProducto(id){
+
+if(!confirm("¿Eliminar producto?")) return
+
+await fetch(API+"/"+id,{
+method:"DELETE"
+})
+
+cargarProductos()
+
+}
+
+cargarProductos()
+
+</script>
+
+</body>
+
+</html>
