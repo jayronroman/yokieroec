@@ -13,10 +13,7 @@ app.use(express.json())
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
-/*mongoose.connect("mongodb://127.0.0.1:27017/yokieroec")*/
 mongoose.connect("mongodb+srv://jroman:DD090620152025@cluster0.tdr7vkd.mongodb.net/yokieroec?retryWrites=true&w=majority")
-
-
 .then(() => console.log("Conectado a MongoDB"))
 .catch(err => console.log(err))
 
@@ -53,22 +50,20 @@ app.get("/productos", async (req, res) => {
 
 app.delete("/productos/:id", async (req,res)=>{
 
-await Producto.findByIdAndDelete(req.params.id)
+  await Producto.findByIdAndDelete(req.params.id)
 
-res.json({mensaje:"Producto eliminado"})
+  res.json({mensaje:"Producto eliminado"})
 
 })
 
 app.put("/productos/:id", async (req,res)=>{
 
-await Producto.findByIdAndUpdate(
+  await Producto.findByIdAndUpdate(
+    req.params.id,
+    req.body
+  )
 
-req.params.id,
-req.body
-
-)
-
-res.json({mensaje:"Producto actualizado"})
+  res.json({mensaje:"Producto actualizado"})
 
 })
 
@@ -76,8 +71,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log("Servidor funcionando en puerto " + PORT);
-<<<<<<< HEAD
-});
-=======
-});
->>>>>>> a840c47043a4f94e371d7909f8db9e8d1c28b1e1
+})
