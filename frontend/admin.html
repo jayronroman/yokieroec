@@ -50,8 +50,8 @@
 
 <script>
 
-/*const API="http://localhost:3000/productos"*/
-const API="https://yokieroec-production.up.railway.app/productos"
+const API="http://localhost:3000/productos"
+/*const API="https://yokieroec-production.up.railway.app/productos"*/
 
 document.getElementById("formProducto").addEventListener("submit", async e =>{
 
@@ -123,7 +123,7 @@ contenedor.innerHTML+=`
 
 <div class="card">
 
-<img src="https://yokieroec-production.up.railway.app/uploads/${p.imagen}" width="150">
+<img src="http://localhost:3000/productos/uploads/${p.imagen}" width="150">
 
 <h3>${p.nombre}</h3>
 
