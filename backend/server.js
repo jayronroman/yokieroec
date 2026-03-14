@@ -13,8 +13,8 @@ app.use(express.json())
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
-mongoose.connect("mongodb://127.0.0.1:27017/yokieroec")
-/*mongoose.connect("mongodb+srv://jroman:DD090620152025@cluster0.tdr7vkd.mongodb.net/yokieroec?retryWrites=true&w=majority")*/
+/*mongoose.connect("mongodb://127.0.0.1:27017/yokieroec")*/
+mongoose.connect("mongodb+srv://jroman:DD090620152025@cluster0.tdr7vkd.mongodb.net/yokieroec?retryWrites=true&w=majority")
 
 
 .then(() => console.log("Conectado a MongoDB"))
