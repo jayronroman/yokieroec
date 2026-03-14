@@ -65,6 +65,7 @@
     const API = "https://yokieroec-production.up.railway.app";
     let productosGlobal = [];
 
+<<<<<<< HEAD
     async function cargarProductos() {
         try {
             const res = await fetch(API + "/productos");
@@ -72,6 +73,10 @@
             mostrarProductos(productosGlobal);
         } catch (e) { console.error("Error cargando productos"); }
     }
+=======
+/*const API = "http://localhost:3000"*/
+const API = "https://yokieroec-production.up.railway.app"
+>>>>>>> a840c47043a4f94e371d7909f8db9e8d1c28b1e1
 
     function mostrarProductos(lista) {
         const contenedor = document.getElementById("listaProductos");
@@ -108,4 +113,9 @@
     cargarProductos();
 </script>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+
+</html>
+>>>>>>> a840c47043a4f94e371d7909f8db9e8d1c28b1e1
