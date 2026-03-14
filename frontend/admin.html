@@ -1,182 +1,118 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-
-<title>Panel Administrador</title>
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Panel Admin | YOKIEROEC</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h2 style="text-align:center">Panel Administrador</h2>
+<header class="header">
+    <div class="logo">
+        <a href="index.html">
+            <img src="logo.jpg" alt="YOKIEROEC">
+            <span class="titulo">Admin Panel</span>
+        </a>
+    </div>
+    <nav><a href="index.html">Ver Tienda</a></nav>
+</header>
 
-<section style="max-width:600px;margin:auto">
+<main>
+    <section class="admin-section">
+        <h2>Gestión de Producto</h2>
+        <form id="formProducto">
+            <input type="hidden" id="productoId">
+            <input type="text" id="nombre" placeholder="Nombre del producto" required>
+            <input type="number" id="precio" placeholder="Precio ($)" required>
+            <select id="categoria">
+                <option value="tecnologia">Tecnología</option>
+                <option value="seguridad">Seguridad</option>
+                <option value="cocina">Cocina</option>
+                <option value="hogar">Hogar</option>
+                <option value="juguetes">Juguetes</option>
+                <option value="herramientas">Herramientas</option>
+            </select>
+            <textarea id="descripcion" placeholder="Descripción..."></textarea>
+            <input type="file" id="imagen">
+            <button type="submit">Guardar Producto</button>
+        </form>
+    </section>
 
-<form id="formProducto">
-
-<input type="hidden" id="productoId">
-
-<input type="text" id="nombre" placeholder="Nombre producto" required>
-
-<input type="number" id="precio" placeholder="Precio">
-
-<select id="categoria">
-
-<option value="tecnologia">Tecnología</option>
-<option value="seguridad">Seguridad</option>
-<option value="cocina">Cocina</option>
-<option value="hogar">Hogar</option>
-<option value="herramientas">Herramientas</option>
-
-</select>
-
-<textarea id="descripcion" placeholder="Descripción"></textarea>
-
-<input type="file" id="imagen">
-
-<button type="submit">Guardar producto</button>
-
-</form>
-
-</section>
-
-<hr>
-
-<h2 style="text-align:center">Productos registrados</h2>
-
-<div id="listaAdmin"></div>
+    <section>
+        <h2>Productos en Inventario</h2>
+        <div id="listaAdmin"></div>
+    </section>
+</main>
 
 <script>
+    const API = "http://localhost:3000/productos";
 
-const API="http://localhost:3000/productos"
-/*const API="https://yokieroec-production.up.railway.app/productos"*/
+    document.getElementById("formProducto").addEventListener("submit", async e => {
+        e.preventDefault();
+        const id = document.getElementById("productoId").value;
+        const nombre = document.getElementById("nombre").value;
+        const precio = document.getElementById("precio").value;
+        const categoria = document.getElementById("categoria").value;
+        const descripcion = document.getElementById("descripcion").value;
 
-document.getElementById("formProducto").addEventListener("submit", async e =>{
+        if (id) {
+            await fetch(API + "/" + id, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, precio, categoria, descripcion })
+            });
+        } else {
+            const formData = new FormData();
+            formData.append("nombre", nombre);
+            formData.append("precio", precio);
+            formData.append("categoria", categoria);
+            formData.append("descripcion", descripcion);
+            formData.append("imagen", document.getElementById("imagen").files[0]);
+            await fetch(API, { method: "POST", body: formData });
+        }
+        document.getElementById("formProducto").reset();
+        document.getElementById("productoId").value = "";
+        cargarProductos();
+    });
 
-e.preventDefault()
+    async function cargarProductos() {
+        const res = await fetch(API);
+        const productos = await res.json();
+        const contenedor = document.getElementById("listaAdmin");
+        contenedor.innerHTML = "";
 
-const id=document.getElementById("productoId").value
+        productos.forEach(p => {
+            contenedor.innerHTML += `
+                <div class="card">
+                    <img src="http://localhost:3000/uploads/${p.imagen}">
+                    <h3>${p.nombre}</h3>
+                    <p class="precio">$${p.precio}</p>
+                    <div class="admin-btns">
+                        <button class="btn-edit" onclick="editarProducto('${p._id}','${p.nombre}','${p.precio}','${p.categoria}','${p.descripcion}')">Editar</button>
+                        <button class="btn-delete" onclick="eliminarProducto('${p._id}')">Eliminar</button>
+                    </div>
+                </div>`;
+        });
+    }
 
-if(id){
+    function editarProducto(id, n, p, c, d) {
+        document.getElementById("productoId").value = id;
+        document.getElementById("nombre").value = n;
+        document.getElementById("precio").value = p;
+        document.getElementById("categoria").value = c;
+        document.getElementById("descripcion").value = d;
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
 
-await fetch(API+"/"+id,{
+    async function eliminarProducto(id) {
+        if(confirm("¿Eliminar?")) {
+            await fetch(API + "/" + id, { method: "DELETE" });
+            cargarProductos();
+        }
+    }
 
-method:"PUT",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-nombre:document.getElementById("nombre").value,
-precio:document.getElementById("precio").value,
-categoria:document.getElementById("categoria").value,
-descripcion:document.getElementById("descripcion").value
-
-})
-
-})
-
-alert("Producto actualizado")
-
-}else{
-
-const formData=new FormData()
-
-formData.append("nombre",document.getElementById("nombre").value)
-formData.append("precio",document.getElementById("precio").value)
-formData.append("categoria",document.getElementById("categoria").value)
-formData.append("descripcion",document.getElementById("descripcion").value)
-formData.append("imagen",document.getElementById("imagen").files[0])
-
-await fetch(API,{
-method:"POST",
-body:formData
-})
-
-alert("Producto guardado")
-
-}
-
-document.getElementById("formProducto").reset()
-document.getElementById("productoId").value=""
-
-cargarProductos()
-
-})
-
-async function cargarProductos(){
-
-const res=await fetch(API)
-const productos=await res.json()
-
-const contenedor=document.getElementById("listaAdmin")
-
-contenedor.innerHTML=""
-
-productos.forEach(p=>{
-
-contenedor.innerHTML+=`
-
-<div class="card">
-
-<img src="http://localhost:3000/productos/uploads/${p.imagen}" width="150">
-
-<h3>${p.nombre}</h3>
-
-<p>$${p.precio}</p>
-
-<button onclick="editarProducto('${p._id}','${p.nombre}','${p.precio}','${p.categoria}','${p.descripcion}')">
-
-Editar
-
-</button>
-
-<button onclick="eliminarProducto('${p._id}')">
-
-Eliminar
-
-</button>
-
-</div>
-
-`
-
-})
-
-}
-
-function editarProducto(id,nombre,precio,categoria,descripcion){
-
-document.getElementById("productoId").value=id
-document.getElementById("nombre").value=nombre
-document.getElementById("precio").value=precio
-document.getElementById("categoria").value=categoria
-document.getElementById("descripcion").value=descripcion
-
-window.scrollTo(0,0)
-
-}
-
-async function eliminarProducto(id){
-
-if(!confirm("¿Eliminar producto?")) return
-
-await fetch(API+"/"+id,{
-method:"DELETE"
-})
-
-cargarProductos()
-
-}
-
-cargarProductos()
-
+    cargarProductos();
 </script>
-
 </body>
-
 </html>

@@ -1,179 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-<title>YOKIEROEC</title>
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YOKIEROEC | Tienda Online Ecuador</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<header>
-
-<h1>YOKIEROEC</h1>
-
-<nav>
-<a href="#">Inicio</a>
-<a href="#categorias">Categorías</a>
-<a href="#productos">Productos</a>
-<a href="#contacto">Contacto</a>
-</nav>
-
+<header class="header">
+    <div class="logo">
+        <a href="index.html">
+            <img src="logo.jpg" alt="YOKIEROEC">
+            <span class="titulo">YOKIEROEC</span>
+        </a>
+    </div>
+    <nav>
+        <a href="#">Inicio</a>
+        <a href="#categorias">Categorías</a>
+        <a href="#productos">Productos</a>
+        <a href="#contacto">Contacto</a>
+    </nav>
 </header>
 
 <section class="banner">
-
-<h2>🔥 Ofertas Especiales 🔥</h2>
-
-<p>Productos para tu hogar, tecnología y seguridad al mejor precio.</p>
-
-<a href="#productos" class="btnBanner">
-Ver productos
-</a>
-
-</section>
-
-<section id="inicio">
-
-<h2>Tu tienda online en Ecuador</h2>
-<p>Seguridad, tecnología, hogar, cocina y mucho más.</p>
-
+    <h2>Tu tienda de confianza</h2>
+    <p>Calidad premium en tecnología, hogar y más. Envíos seguros a todo el Ecuador con pago contra entrega.</p>
+    <a href="#productos" class="btnBanner">Ver Catálogo</a>
 </section>
 
 <section id="categorias">
-
-<h2>Categorías</h2>
-
-<div class="categorias">
-
-<div class="categoria" onclick="mostrarProductos(productosGlobal)">Todos</div>
-<div class="categoria" onclick="filtrarCategoria('tecnologia')">Tecnología</div>
-<div class="categoria" onclick="filtrarCategoria('seguridad')">Seguridad</div>
-<div class="categoria" onclick="filtrarCategoria('cocina')">Cocina</div>
-<div class="categoria" onclick="filtrarCategoria('hogar')">Hogar</div>
-<div class="categoria" onclick="filtrarCategoria('herramientas')">Herramientas</div>
-
-</div>
-
+    <h2>Categorías</h2>
+    <div class="categorias">
+        <div class="categoria" onclick="mostrarProductos(productosGlobal)">Todos</div>
+        <div class="categoria" onclick="filtrarCategoria('tecnologia')">Tecnología</div>
+        <div class="categoria" onclick="filtrarCategoria('seguridad')">Seguridad</div>
+        <div class="categoria" onclick="filtrarCategoria('cocina')">Cocina</div>
+        <div class="categoria" onclick="filtrarCategoria('hogar')">Hogar</div>
+        <div class="categoria" onclick="filtrarCategoria('juguetes')">Juguetes</div>
+        <div class="categoria" onclick="filtrarCategoria('herramientas')">Herramientas</div>
+    </div>
 </section>
 
 <section id="productos">
-
-<h2>Productos</h2>
-
-<input 
-type="text"
-id="buscador"
-placeholder="Buscar producto..."
-style="padding:10px;width:300px;margin-bottom:20px"
->
-
-<div id="listaProductos"></div>
-
+    <div class="buscadorBox">
+        <input type="text" id="buscador" placeholder="🔎 ¿Qué producto buscas hoy?">
+    </div>
+    <div id="listaProductos"></div>
 </section>
 
-<section id="contacto">
-
-<h2>Contáctanos</h2>
-
-<p>📱 WhatsApp: <a href="https://wa.me/593960819170">Escríbenos</a></p>
-<p>📧 Email: yokieroec2023@gmail.com</p>
-<p>🚚 Envíos a todo Ecuador - Pago contra entrega</p>
-
+<section id="contacto" style="border-top: 1px solid #222;">
+    <h2>Contáctanos</h2>
+    <p>📱 WhatsApp: <a href="https://wa.me/593960819170" target="_blank" style="color:var(--primary); text-decoration:none;">Escríbenos</a></p>
+    <p>📧 Email: yokieroec2023@gmail.com</p>
+    <p>🚚 Envíos a todo el país - ¡Compra Segura!</p>
 </section>
+
+<a href="https://wa.me/593960819170" class="whatsapp-float" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+</a>
 
 <script>
+    const API = "http://localhost:3000";
+    let productosGlobal = [];
 
-const API = "http://localhost:3000"
-/*const API = "https://yokieroec-production.up.railway.app"*/
+    async function cargarProductos() {
+        try {
+            const res = await fetch(API + "/productos");
+            productosGlobal = await res.json();
+            mostrarProductos(productosGlobal);
+        } catch (e) { console.error("Error cargando productos"); }
+    }
 
-let productosGlobal=[]
+    function mostrarProductos(lista) {
+        const contenedor = document.getElementById("listaProductos");
+        contenedor.innerHTML = "";
+        if(lista.length === 0) { contenedor.innerHTML = "<h3>No hay resultados</h3>"; return; }
 
-async function cargarProductos(){
+        lista.forEach(p => {
+            const mensaje = encodeURIComponent("Hola, me interesa: " + p.nombre);
+            contenedor.innerHTML += `
+                <div class="card">
+                    <img src="${API}/uploads/${p.imagen}">
+                    <h3>${p.nombre}</h3>
+                    <p class="precio">$${p.precio}</p>
+                    <p class="desc">${p.descripcion}</p>
+                    <a href="https://wa.me/593960819170?text=${mensaje}" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18">
+                        Comprar ahora
+                    </a>
+                </div>`;
+        });
+    }
 
-const res = await fetch(API + "/productos")
+    document.getElementById("buscador").addEventListener("input", e => {
+        const texto = e.target.value.toLowerCase();
+        const filtrados = productosGlobal.filter(p => p.nombre.toLowerCase().includes(texto));
+        mostrarProductos(filtrados);
+    });
 
-productosGlobal = await res.json()
+    function filtrarCategoria(cat) {
+        const filtrados = productosGlobal.filter(p => p.categoria === cat);
+        mostrarProductos(filtrados);
+    }
 
-mostrarProductos(productosGlobal)
-
-}
-
-function mostrarProductos(lista){
-
-const contenedor = document.getElementById("listaProductos")
-
-contenedor.innerHTML=""
-
-if(lista.length === 0){
-
-contenedor.innerHTML="<h3>No hay productos</h3>"
-return
-
-}
-
-lista.forEach(p=>{
-
-const mensaje = encodeURIComponent("Hola quiero comprar " + p.nombre)
-
-contenedor.innerHTML += `
-
-<div class="card">
-
-<img src="${API}/uploads/${p.imagen}" width="200">
-
-<h3>${p.nombre}</h3>
-
-<p>$${p.precio}</p>
-
-<a href="https://wa.me/593960819170?text=${mensaje}">
-Comprar por WhatsApp
-</a>
-
-</div>
-
-`
-
-})
-
-}
-
-/* BUSCADOR */
-
-document.getElementById("buscador").addEventListener("input",e=>{
-
-const texto = e.target.value.toLowerCase()
-
-const filtrados = productosGlobal.filter(p=>
-p.nombre.toLowerCase().includes(texto)
-)
-
-mostrarProductos(filtrados)
-
-})
-
-/* FILTRO POR CATEGORIA */
-
-function filtrarCategoria(cat){
-
-const filtrados = productosGlobal.filter(p=>p.categoria === cat)
-
-mostrarProductos(filtrados)
-
-}
-
-cargarProductos()
-
+    cargarProductos();
 </script>
-
-<a href="https://wa.me/593960819170" class="whatsapp">
-
-💬
-
-</a>
 </body>
-
 </html>
