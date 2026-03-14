@@ -2,10 +2,10 @@
   "name": "yokieroec",
   "version": "1.0.0",
   "description": "Tienda online YOKIEROEC",
-  "main": "server.js",
+  "main": "backend/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js"
+    "start": "node backend/server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

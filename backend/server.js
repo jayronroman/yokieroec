@@ -9,16 +9,19 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-/* Carpeta de imágenes */
-app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+/* ========================
+   CONEXIÓN MONGODB
+======================== */
 
-/* Conexión MongoDB */
 mongoose.connect(process.env.MONGO_URL || "mongodb://127.0.0.1:27017/yokieroec")
 .then(()=> console.log("MongoDB conectado"))
 .catch(err => console.log(err))
 
-/* Modelo producto */
-const Producto = mongoose.model("Producto", {
+/* ========================
+   MODELO PRODUCTO
+======================== */
+
+const Producto = mongoose.model("Producto",{
     nombre:String,
     precio:Number,
     categoria:String,
@@ -26,42 +29,78 @@ const Producto = mongoose.model("Producto", {
     imagen:String
 })
 
-/* Configuración multer */
+/* ========================
+   MULTER SUBIDA IMÁGENES
+======================== */
+
 const storage = multer.diskStorage({
+
     destination:(req,file,cb)=>{
-        cb(null,"uploads")
+        cb(null,path.join(__dirname,"uploads"))
     },
+
     filename:(req,file,cb)=>{
         cb(null,Date.now()+"-"+file.originalname)
     }
+
 })
 
 const upload = multer({storage})
 
-/* Rutas */
+/* ========================
+   SERVIR FRONTEND
+======================== */
 
-/* Obtener productos */
-app.get("/productos", async(req,res)=>{
-    const productos = await Producto.find()
-    res.json(productos)
+app.use(express.static(path.join(__dirname,"../frontend")))
+
+/* SERVIR IMÁGENES */
+
+app.use("/uploads", express.static(path.join(__dirname,"uploads")))
+
+/* ========================
+   RUTA PRINCIPAL
+======================== */
+
+app.get("/",(req,res)=>{
+    res.sendFile(path.join(__dirname,"../frontend/index.html"))
 })
 
-/* Crear producto */
+/* ========================
+   API PRODUCTOS
+======================== */
+
+/* LISTAR */
+
+app.get("/productos", async(req,res)=>{
+
+    const productos = await Producto.find()
+
+    res.json(productos)
+
+})
+
+/* CREAR */
+
 app.post("/productos", upload.single("imagen"), async(req,res)=>{
 
     const nuevo = new Producto({
+
         nombre:req.body.nombre,
         precio:req.body.precio,
         categoria:req.body.categoria,
         descripcion:req.body.descripcion,
         imagen:req.file ? req.file.filename : ""
+
     })
 
     await nuevo.save()
+
     res.json(nuevo)
+
 })
 
-/* Actualizar producto */
+/* EDITAR */
+
 app.put("/productos/:id", async(req,res)=>{
 
     await Producto.findByIdAndUpdate(req.params.id,{
@@ -74,7 +113,8 @@ app.put("/productos/:id", async(req,res)=>{
     res.json({mensaje:"producto actualizado"})
 })
 
-/* Eliminar producto */
+/* ELIMINAR */
+
 app.delete("/productos/:id", async(req,res)=>{
 
     await Producto.findByIdAndDelete(req.params.id)
@@ -82,7 +122,10 @@ app.delete("/productos/:id", async(req,res)=>{
     res.json({mensaje:"producto eliminado"})
 })
 
-/* Puerto Railway */
+/* ========================
+   PUERTO
+======================== */
+
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT,()=>{
