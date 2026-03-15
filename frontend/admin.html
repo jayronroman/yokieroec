@@ -46,8 +46,8 @@
 </main>
 
 <script>
-    // Separamos la BASE de la ruta de PRODUCTOS
-    const BASE_URL = "http://localhost:3000";
+    // CAMBIO: Ahora apunta a Railway
+    const BASE_URL = "https://yokieroec-produccion.up.railway.app";
     const API = `${BASE_URL}/productos`;
 
     document.getElementById("formProducto").addEventListener("submit", async e => {
@@ -60,7 +60,6 @@
 
         try {
             if (id) {
-                // EDITAR
                 const res = await fetch(API + "/" + id, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -68,7 +67,6 @@
                 });
                 if(res.ok) alert("¡Producto actualizado!");
             } else {
-                // CREAR NUEVO
                 const formData = new FormData();
                 formData.append("nombre", nombre);
                 formData.append("precio", precio);
@@ -97,14 +95,14 @@
             contenedor.innerHTML = "";
 
             productos.forEach(p => {
-                // CORRECCIÓN: Usamos BASE_URL para la imagen, no API
+                // CAMBIO: Se eliminó /uploads/
                 contenedor.innerHTML += `
                     <div class="card">
-                        <img src="${BASE_URL}/uploads/${p.imagen}" style="width:100%; height:200px; object-fit:cover;">
+                        <img src="${p.imagen}" style="width:100%; height:200px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'">
                         <h3>${p.nombre}</h3>
                         <p class="precio">$${p.precio}</p>
                         <div class="admin-btns">
-                            <button class="btn-edit" onclick="editarProducto('${p._id}','${p.nombre}','${p.precio}','${p.categoria}','${p.descripcion}')">Editar</button>
+                            <button class="btn-edit" onclick="editarProducto('${p._id}','${p.nombre.replace(/'/g, "\\'")}','${p.precio}','${p.categoria}','${p.descripcion.replace(/'/g, "\\'")}')">Editar</button>
                             <button class="btn-delete" onclick="eliminarProducto('${p._id}')">Eliminar</button>
                         </div>
                     </div>`;

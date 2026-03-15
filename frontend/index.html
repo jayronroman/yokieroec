@@ -61,8 +61,8 @@
 </a>
 
 <script>
-    // Usamos la misma lógica que en el Admin
-    const BASE_URL = "http://localhost:3000";
+    // CAMBIO: Ahora apunta a tu servidor en Railway
+    const BASE_URL = "https://yokieroec-produccion.up.railway.app";
     const API_PRODUCTOS = `${BASE_URL}/productos`;
     let productosGlobal = [];
 
@@ -89,10 +89,10 @@
         lista.forEach(p => {
             const mensaje = encodeURIComponent("Hola YOKIEROEC, me interesa el producto: " + p.nombre + " - Precio: $" + p.precio);
             
-            // CORRECCIÓN DE RUTA DE IMAGEN: Usamos BASE_URL
+            // CAMBIO: Se eliminó /uploads/ porque Cloudinary da el link completo
             contenedor.innerHTML += `
                 <div class="card">
-                    <img src="${BASE_URL}/uploads/${p.imagen}" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'">
+                    <img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/300x300?text=Sin+Imagen'">
                     <h3>${p.nombre}</h3>
                     <p class="precio">$${p.precio}</p>
                     <p class="desc">${p.descripcion || ''}</p>
@@ -104,7 +104,6 @@
         });
     }
 
-    // Buscador en tiempo real
     document.getElementById("buscador").addEventListener("input", e => {
         const texto = e.target.value.toLowerCase().trim();
         const filtrados = productosGlobal.filter(p => 
@@ -114,7 +113,6 @@
         mostrarProductos(filtrados);
     });
 
-    // Filtro por categorías
     function filtrarCategoria(cat) {
         if(cat === 'todos') {
             mostrarProductos(productosGlobal);
@@ -122,11 +120,9 @@
             const filtrados = productosGlobal.filter(p => p.categoria === cat);
             mostrarProductos(filtrados);
         }
-        // Feedback visual: scrollear a productos
         document.getElementById('productos').scrollIntoView({behavior: 'smooth'});
     }
 
-    // Iniciar carga
     cargarProductos();
 </script>
 </body>

@@ -24,15 +24,52 @@ app.use(express.json());
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Configuración de Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, UPLOADS_DIR); // Usar la ruta absoluta
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+//const storage = multer.diskStorage({
+    //destination: (req, file, cb) => {
+        //cb(null, UPLOADS_DIR); // Usar la ruta absoluta
+    //},
+    //filename: (req, file, cb) => {
+        //cb(null, Date.now() + '-' + file.originalname);
+    //}
+//});
+//const upload = multer({ storage });
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Configuración usando las variables que pusiste en Railway
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
 });
+
+// Configurar el almacenamiento en la nube
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'yokieroec_fotos', // Nombre de la carpeta en Cloudinary
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
+
 const upload = multer({ storage });
+
+// RUTA PARA CREAR PRODUCTO (MODIFICADA)
+app.post('/productos', upload.single('imagen'), (req, res) => {
+    const productos = leerProductos();
+    const nuevoProducto = {
+        _id: Date.now().toString(),
+        nombre: req.body.nombre,
+        precio: req.body.precio,
+        categoria: req.body.categoria,
+        descripcion: req.body.descripcion,
+        // IMPORTANTE: Ahora guardamos el link directo de internet
+        imagen: req.file ? req.file.path : 'https://via.placeholder.com/300'
+    };
+    productos.push(nuevoProducto);
+    guardarProductos(productos);
+    res.json({ message: "Producto creado", producto: nuevoProducto });
+});
 
 // Funciones para manejar el JSON
 const leerProductos = () => {
