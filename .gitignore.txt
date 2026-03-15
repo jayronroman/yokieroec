@@ -1,1 +1,0 @@
-Esto le dice a GitHub: "Ignora estas carpetas, no las subas".
