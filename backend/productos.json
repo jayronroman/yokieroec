@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "1773540712903",
+    "nombre": "CAMARA",
+    "precio": "40",
+    "categoria": "seguridad",
+    "descripcion": "CAMARA",
+    "imagen": "1773540712892-logo.jpg"
+  },
+  {
+    "_id": "1773540798056",
+    "nombre": "PLATERA",
+    "precio": "25",
+    "categoria": "cocina",
+    "descripcion": "PLATERA",
+    "imagen": "1773540798050-logo.jpg"
+  }
+]

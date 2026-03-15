@@ -1,133 +1,99 @@
-const express = require("express")
-const mongoose = require("mongoose")
-const multer = require("multer")
-const cors = require("cors")
-const path = require("path")
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+const cors = require('cors');
 
-const app = express()
+const app = express();
+const PORT = 3000;
 
-app.use(cors())
-app.use(express.json())
+// --- CORRECCIÓN DE RUTAS ABSOLUTAS ---
+const DATA_FILE = path.join(__dirname, 'productos.json');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
-/* ========================
-   CONEXIÓN MONGODB
-======================== */
+// Asegurar que la carpeta uploads existe al arrancar
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
-mongoose.connect(process.env.MONGO_URL || "mongodb://127.0.0.1:27017/yokieroec")
-.then(()=> console.log("MongoDB conectado"))
-.catch(err => console.log(err))
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-/* ========================
-   MODELO PRODUCTO
-======================== */
+// IMPORTANTE: Servir la carpeta de forma absoluta
+app.use('/uploads', express.static(UPLOADS_DIR));
 
-const Producto = mongoose.model("Producto",{
-    nombre:String,
-    precio:Number,
-    categoria:String,
-    descripcion:String,
-    imagen:String
-})
-
-/* ========================
-   MULTER SUBIDA IMÁGENES
-======================== */
-
+// Configuración de Multer
 const storage = multer.diskStorage({
-
-    destination:(req,file,cb)=>{
-        cb(null,path.join(__dirname,"uploads"))
+    destination: (req, file, cb) => {
+        cb(null, UPLOADS_DIR); // Usar la ruta absoluta
     },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage });
 
-    filename:(req,file,cb)=>{
-        cb(null,Date.now()+"-"+file.originalname)
+// Funciones para manejar el JSON
+const leerProductos = () => {
+    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]');
+    const data = fs.readFileSync(DATA_FILE, 'utf-8');
+    return JSON.parse(data);
+};
+
+const guardarProductos = (productos) => {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(productos, null, 2));
+};
+
+// --- RUTAS API ---
+
+app.get('/productos', (req, res) => {
+    res.json(leerProductos());
+});
+
+app.post('/productos', upload.single('imagen'), (req, res) => {
+    const productos = leerProductos();
+    const nuevoProducto = {
+        _id: Date.now().toString(),
+        nombre: req.body.nombre,
+        precio: req.body.precio,
+        categoria: req.body.categoria,
+        descripcion: req.body.descripcion,
+        imagen: req.file ? req.file.filename : 'default.jpg'
+    };
+    productos.push(nuevoProducto);
+    guardarProductos(productos);
+    res.json({ message: "Producto creado", producto: nuevoProducto });
+});
+
+app.put('/productos/:id', (req, res) => {
+    let productos = leerProductos();
+    const index = productos.findIndex(p => p._id === req.params.id);
+    
+    if (index !== -1) {
+        productos[index] = { ...productos[index], ...req.body };
+        guardarProductos(productos);
+        res.json({ message: "Producto actualizado" });
+    } else {
+        res.status(404).json({ message: "No encontrado" });
+    }
+});
+
+app.delete('/productos/:id', (req, res) => {
+    let productos = leerProductos();
+    const productoAEliminar = productos.find(p => p._id === req.params.id);
+    
+    if (productoAEliminar && productoAEliminar.imagen !== 'default.jpg') {
+        const rutaImagen = path.join(UPLOADS_DIR, productoAEliminar.imagen);
+        if (fs.existsSync(rutaImagen)) fs.unlinkSync(rutaImagen);
     }
 
-})
+    productos = productos.filter(p => p._id !== req.params.id);
+    guardarProductos(productos);
+    res.json({ message: "Producto eliminado" });
+});
 
-const upload = multer({storage})
-
-/* ========================
-   SERVIR FRONTEND
-======================== */
-
-app.use(express.static(path.join(__dirname,"../frontend")))
-
-/* SERVIR IMÁGENES */
-
-app.use("/uploads", express.static(path.join(__dirname,"uploads")))
-
-/* ========================
-   RUTA PRINCIPAL
-======================== */
-
-app.get("/",(req,res)=>{
-    res.sendFile(path.join(__dirname,"../frontend/index.html"))
-})
-
-/* ========================
-   API PRODUCTOS
-======================== */
-
-/* LISTAR */
-
-app.get("/productos", async(req,res)=>{
-
-    const productos = await Producto.find()
-
-    res.json(productos)
-
-})
-
-/* CREAR */
-
-app.post("/productos", upload.single("imagen"), async(req,res)=>{
-
-    const nuevo = new Producto({
-
-        nombre:req.body.nombre,
-        precio:req.body.precio,
-        categoria:req.body.categoria,
-        descripcion:req.body.descripcion,
-        imagen:req.file ? req.file.filename : ""
-
-    })
-
-    await nuevo.save()
-
-    res.json(nuevo)
-
-})
-
-/* EDITAR */
-
-app.put("/productos/:id", async(req,res)=>{
-
-    await Producto.findByIdAndUpdate(req.params.id,{
-        nombre:req.body.nombre,
-        precio:req.body.precio,
-        categoria:req.body.categoria,
-        descripcion:req.body.descripcion
-    })
-
-    res.json({mensaje:"producto actualizado"})
-})
-
-/* ELIMINAR */
-
-app.delete("/productos/:id", async(req,res)=>{
-
-    await Producto.findByIdAndDelete(req.params.id)
-
-    res.json({mensaje:"producto eliminado"})
-})
-
-/* ========================
-   PUERTO
-======================== */
-
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT,()=>{
-    console.log("Servidor corriendo en puerto "+PORT)
-})
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Carpeta de imágenes: ${UPLOADS_DIR}`); // Esto te dirá dónde está buscando las fotos
+});
